@@ -1,5 +1,29 @@
 apply plugin: 'com.android.application'
 
+ext {
+    bintrayRepo = 'AdHelper'
+    bintrayName = 'ad-helper'
+
+    publishedGroupId = 'com.ualodzka.adhelper'
+    libraryName = 'AdHelper'
+    artifact = 'ad-helper'
+
+    libraryDescription = 'Helper class to manage AdMob ads showing behavior'
+
+    siteUrl = 'https://github.com/ualodzka/AdHelper'
+    gitUrl = 'https://github.com/ualodzka/AdHelper.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'ualodzka'
+    developerName = 'Vladimir Lezhnevich'
+    developerEmail = 'v.lezhnevich@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
@@ -21,13 +45,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:25.2.0'
-    compile 'com.android.support:mediarouter-v7:25.2.0'
-
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.google.android.gms:play-services-ads:10.2.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.google.android.gms:play-services:10.0.1'
-    testCompile 'junit:junit:4.12'
 }
+
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'

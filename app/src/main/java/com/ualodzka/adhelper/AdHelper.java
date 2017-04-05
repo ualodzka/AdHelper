@@ -1,10 +1,6 @@
 package com.ualodzka.adhelper;
 
 import android.content.Context;
-import android.util.Log;
-
-import android.content.Context;
-import android.util.Log;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -12,79 +8,117 @@ import com.google.android.gms.ads.InterstitialAd;
 
 
 /**
- * Created by Sam on 30.03.2017.
+ * Created by Vladimir Lezhnevich on 30.03.2017.
  */
 
 public class AdHelper {
 
-    private InterstitialAd mInterstitialAd;
+    private InterstitialAd interstitialAd;
     private Context context;
-    private boolean mAlreadyShowed = false;
-    private long firstTimeInterval, secondTimeInterval,  startTime, lastShowTime;
-    private String testDevice;
+    private boolean isAlreadyShowed;
+    private long firstTimeInterval, secondTimeInterval, startTime, lastShowTime;
+    private String testDevice, adUnitId;
+    private Builder builder;
 
-    public AdHelper(Context context) {
+    public AdHelper(final Context context, Builder builder) {
         this.context = context;
-        mInterstitialAd = new InterstitialAd(context);
+        this.builder = builder;
         startTime = System.currentTimeMillis();
+        interstitialAd = builder.interstitialAd;
+        testDevice = builder.testDevice;
+
+        //if other onAdClosed implementation were not provided use default one
+        if (builder.adListener != null) {
+            interstitialAd.setAdListener(builder.adListener);
+        } else {
+            interstitialAd.setAdListener(new AdListener() {
+                @Override
+                public void onAdClosed() {
+                    requestNewInterstitial();
+                }
+            });
+        }
+
+        //if time intervals were not provided set default ones
+        if (builder.firstTimeInterval != 0) {
+            firstTimeInterval = builder.firstTimeInterval;
+        } else {
+            firstTimeInterval = 25000;
+        }
+
+        if (builder.secondTimeInterval != 0) {
+            secondTimeInterval = builder.secondTimeInterval;
+        } else {
+            secondTimeInterval = 60000;
+        }
     }
 
-    AdHelper setAdUnitId(String id) {
-        mInterstitialAd.setAdUnitId(id);
-        return this;
+    public static class Builder {
+
+        private InterstitialAd interstitialAd;
+        private final Context context;
+        private long firstTimeInterval, secondTimeInterval;
+        private String testDevice;
+        private AdListener adListener;
+
+        public Builder(Context context) {
+            this.context = context;
+            this.interstitialAd = new InterstitialAd(this.context);
+        }
+
+        public AdHelper build() {
+            return new AdHelper(context, this);
+        }
+
+        Builder setAdUnitId(String id) {
+            this.interstitialAd.setAdUnitId(id);
+            return this;
+        }
+
+        Builder setAdListener(AdListener adListener) {
+            this.adListener = adListener;
+            return this;
+        }
+
+        Builder setFirstTimeInterval(long millis) {
+            this.firstTimeInterval = millis;
+            return this;
+        }
+
+        Builder setSecondTimeInterval(long millis) {
+            this.secondTimeInterval = millis;
+            return this;
+        }
+
+        Builder addTestDevice(String testDeviceString) {
+            this.testDevice = testDeviceString;
+            return this;
+        }
+
     }
 
-    AdHelper setAdListener() {
-        mInterstitialAd.setAdListener(new AdListener() {
-            @Override
-            public void onAdClosed() {
-                requestNewInterstitial();
-            }
-
-            @Override
-            public void onAdLoaded() {
-//                Log.i(LOG_TAG, "AdLoaded ");
-            }
-        });
-        return this;
-    }
-
-    AdHelper setFirstTimeInterval(long millis) {
-        firstTimeInterval = millis;
-        return this;
-    }
-
-    AdHelper setSecondTimeInterval(long millis) {
-        secondTimeInterval = millis;
-        return this;
-    }
-
-    AdHelper addTestDevice(String testDeviceString) {
-        testDevice = testDeviceString;
-        return this;
-    }
 
     private void requestNewInterstitial() {
-        if (!mInterstitialAd.isLoaded()) {
+        if (!interstitialAd.isLoaded()) {
             AdRequest adRequest = new AdRequest.Builder()
                     .addTestDevice(testDevice)
                     .build();
 
-            mInterstitialAd.loadAd(adRequest);
+            interstitialAd.loadAd(adRequest);
         }
     }
 
     public void tryToShowAd() {
-        long  currentTime = System.currentTimeMillis();
-        if (!mAlreadyShowed) {
+        long currentTime = System.currentTimeMillis();
+        if (!isAlreadyShowed) {
             if (currentTime - startTime >= firstTimeInterval) {
-                mInterstitialAd.show();
-                mAlreadyShowed = true;
+                interstitialAd.show();
+                isAlreadyShowed = true;
                 lastShowTime = System.currentTimeMillis();
             }
         } else {
             if (currentTime - lastShowTime >= secondTimeInterval) {
-                mInterstitialAd.show();
+                interstitialAd.show();
                 lastShowTime = System.currentTimeMillis();
             }
         }
